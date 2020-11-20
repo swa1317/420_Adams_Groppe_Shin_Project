@@ -16,6 +16,8 @@ USE_SERIAL_FEEDBACK = False
 DEVELOPMENT_MODE = False
 USE_RMC_ONLY = False
 
+# read GPS file and return array of lines
+# set global variables during read
 def readGPS(gpsFile):
     gpsData = open(gpsFile, 'r')
     Lines = gpsData.readlines()
@@ -51,6 +53,32 @@ def readGPS(gpsFile):
     # return lines from start of gps data
     return Lines[count:]
 
+# convert array of GPS lines for array of equivalent KML lines
+def getKMLBody(Lines):
+    for line in Lines:
+        fields = line.split(',')
+        kml_line = GPS_Line_Options[fields[0]](fields) # efficiently call read function using GPS_Line_Options
+
+# given array of GPGGA line's fields, return the equivalent KML line as string
+def readGPGGA(fields):
+    return
+
+# given array of GPRMC line's fields, return the equivalent KML line as string
+def readGPRMC(fields):
+    return
+
+# given array of lng line's fields, return the equivalent KML line as string
+def read_lng(fields):
+    return
+
+# functions corresponding to line header/first value
+GPS_Line_Options = {
+    '$GPGGA' : readGPGGA,
+    '$GPRMC' : readGPRMC,
+    'lng'    : read_lng
+}
+
+# beginning of KML file
 KML_Header = '''
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -73,6 +101,7 @@ KML_Header = '''
 \t<coordinates>
 '''
 
+# end of KML file
 KML_Tail = '''
 \t</coordinates>
 </LineString>
@@ -81,10 +110,16 @@ KML_Tail = '''
 </kml>
 '''
 
+# layout of GPRMC fields
 GPRMC = ['time', 'A', 'degree_mins_lat', 'posNorth_negSouth', 'degree_mins_long', 'posEast_negWest', 'knots',
          'tracking_angle', 'ddmmyy', '...', '..', 'check_sum']
+
+# layout of GPGGA fields
 GPGGA = ['time', 'degree_mins_lat', 'North', 'degree_mins_long', 'West', '1_if_fix', 'num_satellites', 'dilution', 'altitude']
+
+# GPS messed up if these are found
 IgnoreFields = ['$GPGSA', '$GPVTG']
+
 
 
 if __name__ == '__main__':
@@ -95,5 +130,5 @@ if __name__ == '__main__':
         GPS_Filename = parameter[0]
         KML_Filename = parameter[1]
         Lines = readGPS(GPS_Filename) # gps file starting at beginning of gps data
-
+        Lines_KML_Body = getKMLBody(Lines)
         print('temp line for debug')
