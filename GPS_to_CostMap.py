@@ -1,5 +1,3 @@
-import numpy as np
-import pandas as pd
 import sys
 
 ################################
@@ -13,9 +11,8 @@ import sys
 
 if __name__ == '__main__':
     parameter = sys.argv[1:]
-    if len(parameter) != 2:
-        print("Incorrect number of parameters. \nUsage: GPS_to_KML.py GPS_Filename.txt KML_Filename.kml")
+    if len(parameter) < 2:
+        print("Incorrect number of parameters. \nUsage: GPS_to_CostMap.py *.txt KML_Mapfile.kml")
     else:
         GPS_Filename = parameter[0]
         KML_Filename = parameter[1]
-
