@@ -111,11 +111,12 @@ KML_Tail = '''
 '''
 
 # layout of GPRMC fields
-GPRMC = ['time', 'A', 'degree_mins_lat', 'posNorth_negSouth', 'degree_mins_long', 'posEast_negWest', 'knots',
-         'tracking_angle', 'ddmmyy', '...', '..', 'check_sum']
+GPRMC = {'time' : 1, 'A' : 2, 'degree_mins_lat' : 3, 'posNorth_negSouth' : 4, 'degree_mins_long' : 5, 'posEast_negWest' : 6,
+         'knots' : 7, 'tracking_angle' : 8, 'ddmmyy' : 8, 'check_sum' : 11}
 
 # layout of GPGGA fields
-GPGGA = ['time', 'degree_mins_lat', 'North', 'degree_mins_long', 'West', '1_if_fix', 'num_satellites', 'dilution', 'altitude']
+GPGGA = {'time' : 1, 'degree_mins_lat' : 2, 'North' : 3, 'degree_mins_long' : 4, 'West' : 5, '1_if_fix' : 6,
+         'num_satellites' : 7, 'dilution' : 8, 'altitude' : 9}
 
 # GPS messed up if these are found
 IgnoreFields = ['$GPGSA', '$GPVTG']
