@@ -10,11 +10,11 @@ import sys
 #   11/20/2020                 #
 #                              #
 ################################
-
 Version = ""
 USE_SERIAL_FEEDBACK = False
 DEVELOPMENT_MODE = False
 USE_RMC_ONLY = False
+
 
 # read GPS file and return array of lines
 # set global variables during read
@@ -55,21 +55,32 @@ def readGPS(gpsFile):
 
 # convert array of GPS lines for array of equivalent KML lines
 def getKMLBody(Lines):
+    lines = []
     for line in Lines:
         fields = line.split(',')
-        kml_line = GPS_Line_Options[fields[0]](fields) # efficiently call read function using GPS_Line_Options
-
+        kml_line = GPS_Line_Options[fields[0].split('=')[0]](fields) # efficiently call read function using GPS_Line_Options
+        lines.append(kml_line)
+    return lines
 # given array of GPGGA line's fields, return the equivalent KML line as string
 def readGPGGA(fields):
-    return
+    lat = int(fields[2][:2]) + int(fields[2][2:4]) / 60 + int(fields[2][5:]) / 3600
+    lon = int(fields[4][:3]) + int(fields[4][3:5]) / 60 + int(fields[4][6:]) / 3600
+    alt = float(fields[9])
+    return [float(lat), float(lon), alt]
 
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
-    return
+    lat = int(fields[3][:2])+int(fields[3][2:4])/60+int(fields[3][5:])/3600
+    lon = int(fields[5][:3])+int(fields[5][3:5])/60+int(fields[5][6:])/3600
+    alt = float(fields[8])
+    return [float(lat), float(lon), alt]
 
 # given array of lng line's fields, return the equivalent KML line as string
 def read_lng(fields):
-    return
+    lat = float(fields[0].split('=')[1])
+    lon = float(fields[1].split('=')[1])
+    alt = float(fields[2].split('=')[1])
+    return [lat, lon, alt]
 
 # functions corresponding to line header/first value
 GPS_Line_Options = {
