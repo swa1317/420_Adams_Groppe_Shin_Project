@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import sys
+import os
 
 ################################
 #                              #
@@ -63,30 +64,67 @@ def getKMLBody(Lines):
     return lines
 # given array of GPGGA line's fields, return the equivalent KML line as string
 def readGPGGA(fields):
-    lat = int(fields[2][:2]) + int(fields[2][2:4]) / 60 + int(fields[2][5:]) / 3600
-    lon = int(fields[4][:3]) + int(fields[4][3:5]) / 60 + int(fields[4][6:]) / 3600
-    alt = float(fields[9])
-    return [float(lat), float(lon), alt]
+    if fields[2].isnumeric():
+        lat = float(int(fields[2][:2]) + int(fields[2][2:4]) / 60 + int(fields[2][5:]) / 3600)
+    else:
+        lat = 'Corrupt'
+    if fields[4].isnumeric():
+        lon = float(int(fields[4][:3]) + int(fields[4][3:5]) / 60 + int(fields[4][6:]) / 3600)
+    else:
+        lon = 'Corrupt'
+
+    if fields[9].isnumeric():
+        alt = float(fields[9])
+    else:
+        alt = 'Corrupt'
+    return [lat, lon, alt]
 
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
-    lat = int(fields[3][:2])+int(fields[3][2:4])/60+int(fields[3][5:])/3600
-    lon = int(fields[5][:3])+int(fields[5][3:5])/60+int(fields[5][6:])/3600
-    alt = float(fields[8])
-    return [float(lat), float(lon), alt]
+    if fields[3].isnumeric():
+        lat = float(int(fields[3][:2])+int(fields[3][2:4])/60+int(fields[3][5:])/3600)
+    else:
+        lat = 'Corrupt'
+    if fields[5].isnumeric():
+        lon = float(int(fields[5][:3])+int(fields[5][3:5])/60+int(fields[5][6:])/3600)
+    else:
+        lon = 'Corrupt'
 
+    if fields[8].isnumeric():
+        alt = float(fields[8])
+    else:
+        alt = 'Corrupt'
+    return [lat, lon, alt]
+def doNothing(fields):
+    return
 # given array of lng line's fields, return the equivalent KML line as string
 def read_lng(fields):
-    lat = float(fields[0].split('=')[1])
-    lon = float(fields[1].split('=')[1])
-    alt = float(fields[2].split('=')[1])
+    if fields[0].isnumeric():
+        lat = float(fields[0].split('=')[1])
+    else:
+        lat = 'Corrupt'
+    if fields[1].isnumeric():
+        lon = float(fields[1].split('=')[1])
+    else:
+        lon = 'Corrupt'
+    if fields[2].isnumeric():
+        alt = float(fields[2].split('=')[1])
+    else:
+        alt = 'Corrupt'
     return [lat, lon, alt]
 
 # functions corresponding to line header/first value
 GPS_Line_Options = {
     '$GPGGA' : readGPGGA,
     '$GPRMC' : readGPRMC,
-    'lng'    : read_lng
+    'lng'    : read_lng,
+'192710.000' : doNothing,
+    '$GPGSA' : doNothing,
+    '$GPVTG' : doNothing,
+    '$GPGSV' : doNothing,
+    'GPVTG': doNothing,
+    '': doNothing,
+    '\n':doNothing
 }
 
 # beginning of KML file
@@ -132,15 +170,24 @@ GPGGA = {'time' : 1, 'degree_mins_lat' : 2, 'North' : 3, 'degree_mins_long' : 4,
 # GPS messed up if these are found
 IgnoreFields = ['$GPGSA', '$GPVTG']
 
-
-
+def main(parameter):
+    GPS_Filename = parameter[0]
+    if GPS_Filename == '*.txt':
+        onlyfiles = [f for f in os.listdir("FILES_TO_WORK")]
+        for file in onlyfiles:
+            print(file.title())
+            KML_Filename = "Results\\"+file.title()+parameter[1]
+            Lines = readGPS("FILES_TO_WORK\\"+file.title())  # gps file starting at beginning of gps data
+            Lines_KML_Body = getKMLBody(Lines)
+            print('temp line for debug')
+    else:
+        KML_Filename = parameter[1]
+        Lines = readGPS(GPS_Filename)  # gps file starting at beginning of gps data
+        Lines_KML_Body = getKMLBody(Lines)
+        print('temp line for debug')
 if __name__ == '__main__':
     parameter = sys.argv[1:]
     if len(parameter) != 2:
         print("Incorrect number of parameters. \nUsage: GPS_to_KML.py GPS_Filename.txt KML_Filename.kml")
     else:
-        GPS_Filename = parameter[0]
-        KML_Filename = parameter[1]
-        Lines = readGPS(GPS_Filename) # gps file starting at beginning of gps data
-        Lines_KML_Body = getKMLBody(Lines)
-        print('temp line for debug')
+        main(parameter)

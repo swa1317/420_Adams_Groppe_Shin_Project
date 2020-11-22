@@ -1,4 +1,5 @@
 import sys
+import GPS_to_KML
 
 ################################
 #                              #
@@ -16,3 +17,4 @@ if __name__ == '__main__':
     else:
         GPS_Filename = parameter[0]
         KML_Filename = parameter[1]
+        GPS_to_KML.main(parameter)
