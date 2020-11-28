@@ -176,9 +176,19 @@ def main(parameter):
         onlyfiles = [f for f in os.listdir("FILES_TO_WORK")]
         for file in onlyfiles:
             print(file.title())
-            KML_Filename = "Results\\"+file.title()+parameter[1]
+            KML_Filename = file.title()[:len(file.title())-4]+"_"+parameter[1]
             Lines = readGPS("FILES_TO_WORK\\"+file.title())  # gps file starting at beginning of gps data
             Lines_KML_Body = getKMLBody(Lines)
+            f = open(KML_Filename, "w")
+            f.write(KML_Header)
+            f.write("\n \n")
+            for line in Lines_KML_Body:
+                if line:
+                    for el in line:
+                        f.write(el)
+            f.write("\n \n")
+            f.write(KML_Tail)
+            f.close()
             print('temp line for debug')
     else:
         KML_Filename = parameter[1]
