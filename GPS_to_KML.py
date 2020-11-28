@@ -17,6 +17,13 @@ DEVELOPMENT_MODE = False
 USE_RMC_ONLY = False
 
 
+def is_number(string):
+    try:
+        float(string)
+        return True
+    except ValueError:
+        return False
+
 # read GPS file and return array of lines
 # set global variables during read
 def readGPS(gpsFile):
@@ -81,16 +88,16 @@ def readGPGGA(fields):
 
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
-    if fields[3].isnumeric():
+    if is_number(fields[3]):
         lat = float(int(fields[3][:2])+int(fields[3][2:4])/60+int(fields[3][5:])/3600)
     else:
         lat = 'Corrupt'
-    if fields[5].isnumeric():
+    if is_number(fields[5]):
         lon = float(int(fields[5][:3])+int(fields[5][3:5])/60+int(fields[5][6:])/3600)
     else:
         lon = 'Corrupt'
 
-    if fields[8].isnumeric():
+    if is_number(fields[8]):
         alt = float(fields[8])
     else:
         alt = 'Corrupt'
@@ -99,15 +106,15 @@ def doNothing(fields):
     return
 # given array of lng line's fields, return the equivalent KML line as string
 def read_lng(fields):
-    if fields[0].isnumeric():
+    if is_number(fields[0]):
         lat = float(fields[0].split('=')[1])
     else:
         lat = 'Corrupt'
-    if fields[1].isnumeric():
+    if is_number(fields[1]):
         lon = float(fields[1].split('=')[1])
     else:
         lon = 'Corrupt'
-    if fields[2].isnumeric():
+    if is_number(fields[2]):
         alt = float(fields[2].split('=')[1])
     else:
         alt = 'Corrupt'
