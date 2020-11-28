@@ -207,7 +207,7 @@ def main(parameter):
         for line in Lines_KML_Body:
             if line:
                 for el in line:
-                    f.write(el)
+                    f.write(str(el))
         f.write("\n \n")
         f.write(KML_Tail)
         f.close()
