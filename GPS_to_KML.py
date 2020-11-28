@@ -192,8 +192,18 @@ def main(parameter):
             print('temp line for debug')
     else:
         KML_Filename = parameter[1]
-        Lines = readGPS(GPS_Filename)  # gps file starting at beginning of gps data
+        Lines = readGPS("FILES_TO_WORK\\"+GPS_Filename)  # gps file starting at beginning of gps data
         Lines_KML_Body = getKMLBody(Lines)
+        f = open(KML_Filename, "w")
+        f.write(KML_Header)
+        f.write("\n \n")
+        for line in Lines_KML_Body:
+            if line:
+                for el in line:
+                    f.write(el)
+        f.write("\n \n")
+        f.write(KML_Tail)
+        f.close()
         print('temp line for debug')
 if __name__ == '__main__':
     parameter = sys.argv[1:]
