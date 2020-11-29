@@ -297,12 +297,15 @@ def write_kml(lines_kml_body, found_stops, output_file):
     f.write(kml_last_two) # add last two lines of KML file
     f.close()
 
-# Given three data points, get the angle between them
-def getAngle(point1, point2, point3):
-    dist_1_2 = math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
-    dist_2_3 = math.sqrt((point2[0] - point3[0]) ** 2 + (point2[1] - point3[1]) ** 2)
-    dist_1_3 = math.sqrt((point3[0] - point1[0]) ** 2 + (point3[1] - point1[1]) ** 2)
-    return math.degrees(math.cos(((dist_2_3) ** 2 + (dist_1_2) ** 2 - (dist_1_3) ** 2) / (2 * dist_2_3 * dist_1_2)))
+def getAngle(p_1, p_2, p_3):
+
+    if (p_1[0:2] == p_2[0:2]) or (p_2[0:2] == p_3[0:2]):
+        return 0
+
+    l_1_2 = math.sqrt((p_1[0]-p_2[0])**2 + (p_1[1]-p_2[1])**2)
+    l_2_3 = math.sqrt((p_2[0]-p_3[0])**2 + (p_2[1]-p_3[1])**2)
+    l_3_1 = math.sqrt((p_3[0]-p_1[0])**2 + (p_3[1]-p_1[1])**2)
+    return math.degrees(math.cos(((l_2_3)**2 + (l_1_2)**2 - (l_3_1)**2) / (2 * l_2_3 * l_1_2)))
 
 
 def getDirection(point1, point2, point3):
