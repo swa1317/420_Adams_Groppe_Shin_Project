@@ -14,6 +14,33 @@ import datetime
 #                              #
 ################################
 
+kml_header_magenta = '''
+<Placemark>
+\t<Description>Magenta PIN for Stop.</Description>
+\t<Style id="normalPlacemark">
+\t<IconStyle>
+\t\t<color>ffff00ff</color>
+\t\t<Icon>
+\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>
+\t\t</Icon>
+\t</IconStyle>
+\t</Style>
+\t<Point>
+'''
+
+# end of KML file without last two lines
+kml_tail = '''
+    </coordinates>
+   </LineString>
+  </Placemark>
+'''
+
+#last two lines of KML file
+kml_last_two = '''
+ </Document>
+</kml>
+'''
+
 def is_number(string):
     try:
         float(string)
@@ -101,10 +128,12 @@ def parse_gps_files(input_files):
 def findAllStops(points):
     decelerating = False
 
-    lat_long_values = []
+    lat_long_speed_vals = []
     found_stops = []
 
     lastTimeValue = 0.0
+    lastSpeedValue = 0.0
+
     timeDecelerating = 0.0
 
     for point in points:
@@ -120,23 +149,44 @@ def findAllStops(points):
                 timeDecelerating += time - lastTimeValue
                 lastTimeValue = time
 
-            lat_long_values.append([point[0], point[1]])
+            lat_long_speed_vals.append([point[0], point[1], speed])
         else:
             if decelerating is True: # if speeding up after a deceleration
 
                 # if stop lasted less than two minutes and is at least 5 records, add to found stops
-                if timeDecelerating <= 120 and len(lat_long_values) >= 5:
-                    lat_long_values.append([point[0], point[1]]) # add point where cars begins accelerating
-                    found_stops.append(lat_long_values) # add stop data to list of found stops
+                if timeDecelerating <= 120 and len(lat_long_speed_vals) >= 5:
+                    lat_long_speed_vals.append([point[0], point[1], speed]) # add point where car begins accelerating
+                    found_stops.append(lat_long_speed_vals) # add stop data to list of found stops
 
                 # reset vals
-                lat_long_values = []
+                lat_long_speed_vals = []
                 decelerating = False
                 lastTimeValue = 0.0
                 timeDecelerating = 0.0
 
     return found_stops
 
+def write_kml(lines_kml_body, found_stops, output_file):
+    f = open(output_file, "w")
+    f.write(GPS_to_KML.kml_header)
+    for line_list in lines_kml_body:
+        if None not in line_list:
+            line = ",".join(list(map(lambda x: str(x), line_list[0:3])))
+            f.write(line + "\n")
+    f.write(kml_tail)
+    if len(found_stops) > 0:
+        for stop in found_stops:
+            f.write(kml_header_magenta)
+            num_points = len(stop) # number if records in the stop
+            stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this
+            line = ",".join(list(map(lambda x: str(x), stop_point)))
+            f.write("\t\t<coordinates>")
+            f.write(line + "</coordinates>\n")
+            f.write("\t</Point>\n")
+            f.write("</Placemark>")
+
+    f.write(kml_last_two)
+    f.close()
 
 def getAngle(a, b, c):
     angle = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
@@ -157,5 +207,6 @@ if __name__ == '__main__':
             points.append(point)
         results = GPS_to_KML.filter(points)
         found_stops = findAllStops(results)
+        write_kml(results, found_stops, output_file)
         print(len(lon_lat_speed))
         print(len(results))
