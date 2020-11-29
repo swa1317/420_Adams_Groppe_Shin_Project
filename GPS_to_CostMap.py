@@ -177,7 +177,7 @@ def findAllStops(points):
                     lat_long_speed_vals.append([point[0], point[1], speed]) # add point where car begins accelerating
                     found_stops.append(lat_long_speed_vals) # add stop data to list of found stops
 
-                # reset vals
+                # reset vals now that this stopping event is over
                 lat_long_speed_vals = []
                 decelerating = False
                 lastTimeValue = 0.0
@@ -233,7 +233,7 @@ def findAllTurns(points):
                 if max_angle > 40: # if the best angle is above 40 degrees then it might be a turn
                     found_turns.append([point_1, best_turning_point, point_3])
 
-            # reset vals
+            # reset vals now that this turning event is over
             lat_long_speed_vals = []
             decelerating = False
             lastTimeValue = 0.0
