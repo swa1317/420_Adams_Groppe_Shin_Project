@@ -92,14 +92,14 @@ def readGPRMC(fields):
         degree = float(degree_mins_lat[:2])
         minutes = float(degree_mins_lat[2:])
         direction = 1 if posNorth_negSouth == 'N' else -1
-        lat = direction * (degree + (minutes/60))
+        lat = round(direction * (degree + (minutes/60)), 6)
     else:
         lat = 'Corrupt'
     if is_number(degree_mins_long):
         degree = float(degree_mins_long[:3])
         minutes = float(degree_mins_long[3:])
         direction = 1 if posEast_negWest == 'E' else -1
-        lon = direction * (degree + (minutes/60))
+        lon = round(direction * (degree + (minutes/60)), 6)
     else:
         lon = 'Corrupt'
 
