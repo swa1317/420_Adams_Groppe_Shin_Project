@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import sys
 import os
+import datetime
 
 ################################
 #                              #
@@ -65,10 +66,11 @@ yellow = ff00ffff
 
 
 class DataPoint:
-    def __init__(self, lat, lon, speed):
+    def __init__(self, lat, lon, speed, time):
         self.lat = lat
         self.lon = lon
         self.speed = speed
+        self.time = time
 
 
 def is_number(string):
@@ -110,6 +112,8 @@ def readGPRMC(fields):
     degree_mins_long = fields[5]  # DDDmm.mm
     posEast_negWest = fields[6]
     knots = fields[7]
+    timeUTC = fields[1]
+
     if is_number(degree_mins_lat):
         degree = float(degree_mins_lat[:2])
         minutes = float(degree_mins_lat[2:])
@@ -129,7 +133,13 @@ def readGPRMC(fields):
         speed = float(knots) * 1.150779448  # 1 knot is equal to 1.150779448 MPH, multiply speed value by 1.150779448
     else:
         speed = None
-    return [lon, lat, speed]
+
+    if is_number(timeUTC):
+        timeUTC = datetime.datetime.fromtimestamp(float(timeUTC))   # convert timestamp to datetime value
+    else:
+        timeUTC = None
+
+    return [lon, lat, speed, timeUTC]
 
 
 def filter(points):
@@ -158,7 +168,7 @@ def filter(points):
         idx += 1
     results = []
     for point in points:
-        results.append([point.lat, point.lon, point.speed])
+        results.append([point.lat, point.lon, point.speed, point.time])
     return results
 
 
