@@ -38,38 +38,15 @@ def is_number(string):
 # set global variables during read
 def readGPS(gpsFile):
     gpsData = open(gpsFile, 'r')
-    Lines = gpsData.readlines()
+    file_lines = gpsData.readlines()
+    filtered_lines = []
+    for file_line in file_lines:
+        x = file_line.split(",")
+        if x[0] == "$GPRMC":
+            filtered_lines.append(file_line)
 
-    # get top of file values
-    count = 0
-    while True:
-        line = Lines[count]
+    return filtered_lines
 
-        # break loop if reached gps data
-        if '$' in line:
-            break
-
-        if 'Vers' in line: # version
-            vers = line.split(' ')[1]
-            global Version
-            Version = vers
-        elif "=" in line: # boolean value
-            referenceName = line.split('=')[0] # variable name
-            referenceValue = line.split('=')[1] # variable value
-
-            if referenceName == "USE_SERIAL_FEEDBACK":
-                global USE_SERIAL_FEEDBACK
-                USE_SERIAL_FEEDBACK = True if 'true' in referenceValue else False
-            elif referenceName == "DEVELOPMENT_MODE":
-                global DEVELOPMENT_MODE
-                DEVELOPMENT_MODE = True if 'true' in referenceValue else False
-            elif referenceName == "USE_RMC_ONLY":
-                global USE_RMC_ONLY
-                USE_RMC_ONLY = True if 'true' in referenceValue else False
-        count += 1
-
-    # return lines from start of gps data
-    return Lines[count:]
 
 # convert array of GPS lines for array of equivalent KML lines
 def getKMLBody(Lines):
