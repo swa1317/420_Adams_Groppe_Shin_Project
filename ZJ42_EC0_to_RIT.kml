@@ -15,7 +15,7 @@
 <Description>Speed in Knots, instead of altitude.</Description>
   <extrude>1</extrude>
   <tesselate>1</tesselate>
-  <altitudeMode>absolute</altitudeMode>
+  <altitudeMode>relativeToGround</altitudeMode>
   <coordinates>
 -77.437805,43.138207,0.06
 -77.437803,43.138208,0.05
