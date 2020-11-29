@@ -5,5 +5,9 @@
 # https://docs.novatel.com/OEM7/Content/Logs/GPVTG.htm
 
 if __name__ == '__main__':
-    a = "1.1"
-    print(a.isdecimal())
+    # if S or W, it is negative
+    # conversion +/- (D + M/60)
+    lat = "4305.1625"
+    lat_dir = "N"
+    lon = "07740.8511"
+    lon_dir = "W"

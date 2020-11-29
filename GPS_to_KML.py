@@ -89,11 +89,17 @@ def readGPGGA(fields):
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
     if is_number(fields[3]):
-        lat = float(int(fields[3][:2])+int(fields[3][2:4])/60+int(fields[3][5:])/3600)
+        degree = float(fields[3][:2])
+        minutes = float(fields[3][2:])
+        direction = 1 if fields[4] == 'N' else -1
+        lat = direction * (degree + (minutes/60))
     else:
         lat = 'Corrupt'
     if is_number(fields[5]):
-        lon = float(int(fields[5][:3])+int(fields[5][3:5])/60+int(fields[5][6:])/3600)
+        degree = float(fields[5][:3])
+        minutes = float(fields[5][3:])
+        direction = 1 if fields[6] == 'E' else -1
+        lon = direction * (degree + (minutes/60))
     else:
         lon = 'Corrupt'
 
@@ -192,14 +198,14 @@ def main(parameter):
             for line in Lines_KML_Body:
                 if line:
                     for el in line:
-                        f.write(el)
+                        f.write(str(el))
             f.write("\n \n")
             f.write(KML_Tail)
             f.close()
             print('temp line for debug')
     else:
         KML_Filename = parameter[1]
-        Lines = readGPS("FILES_TO_WORK\\"+GPS_Filename)  # gps file starting at beginning of gps data
+        Lines = readGPS(GPS_Filename)  # gps file starting at beginning of gps data
         Lines_KML_Body = getKMLBody(Lines)
         f = open(KML_Filename, "w")
         f.write(KML_Header)
