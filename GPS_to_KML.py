@@ -134,9 +134,9 @@ def read_lng(fields):
 
 # functions corresponding to line header/first value
 GPS_Line_Options = {
-    '$GPGGA' : readGPGGA,
+    '$GPGGA' : doNothing,
     '$GPRMC' : readGPRMC,
-    'lng'    : read_lng,
+    'lng'    : doNothing,
 '192710.000' : doNothing,
     '$GPGSA' : doNothing,
     '$GPVTG' : doNothing,
