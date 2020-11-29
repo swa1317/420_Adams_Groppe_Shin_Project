@@ -28,6 +28,26 @@ kml_header_magenta = '''
 \t<Point>
 '''
 
+kml_header_cyan = '''
+<Placemark>
+\t<Description>cyan PIN for right turn.</Description>
+\t<Style id="normalPlacemark">
+\t<IconStyle>
+\t\t<color>ffffff00</color>
+\t\t<Icon>
+\t\t\t<href>http://maps.google.com/mapfiles/kml/paddle/1.png</href>
+\t\t</Icon>
+\t</IconStyle>
+\t</Style>
+\t<Point>
+'''
+
+kml_header_yellow = '''
+<Placemark>
+\t<Description>yellow PIN for left turn.</Description>
+\t<Point>
+'''
+
 # end of KML file without last two lines
 kml_tail = '''
     </coordinates>
@@ -132,7 +152,6 @@ def findAllStops(points):
     found_stops = []
 
     lastTimeValue = 0.0
-    lastSpeedValue = 0.0
 
     timeDecelerating = 0.0
 
@@ -153,8 +172,8 @@ def findAllStops(points):
         else:
             if decelerating is True: # if speeding up after a deceleration
 
-                # if stop lasted less than two minutes and is at least 5 records, add to found stops
-                if timeDecelerating <= 120 and len(lat_long_speed_vals) >= 5:
+                # if stop lasted less than three minutes and is at least 5 records, add to found stops
+                if timeDecelerating <= 180 and len(lat_long_speed_vals) >= 5:
                     lat_long_speed_vals.append([point[0], point[1], speed]) # add point where car begins accelerating
                     found_stops.append(lat_long_speed_vals) # add stop data to list of found stops
 
@@ -165,6 +184,64 @@ def findAllStops(points):
                 timeDecelerating = 0.0
 
     return found_stops
+
+def findAllTurns(points):
+    decelerating = False
+
+    lat_long_speed_vals = []
+    found_turns = []
+
+    lastTimeValue = 0.0
+    lastSpeedValue = 0.0
+    timeDecelerating = 0.0
+
+    for point in points:
+
+        speed = point[2]
+        time = point[3]
+
+        if speed < 30.00:  # if the speed is less than 25 MPH, then we might be about to turn
+            if decelerating is False:
+                lastTimeValue = time
+                decelerating = True
+            else:
+                timeDecelerating += time - lastTimeValue
+                lastTimeValue = time
+
+            lat_long_speed_vals.append([point[0], point[1], speed])
+        else:
+            if decelerating is True: # if speeding up after a deceleration
+                lat_long_speed_vals.append([point[0], point[1], speed])  # add point where car begins accelerating
+
+                num_vals_captured = len(lat_long_speed_vals)
+
+                if num_vals_captured >= 3:   # if we captured at least three values
+                    point_1 = lat_long_speed_vals[0] # begining of deceleration
+                    point_3 = lat_long_speed_vals[num_vals_captured-1] # once past 15 mph
+
+                    max_angle = 0.0 # best angle found for turn
+                    best_turning_point = point_1 # best point found for turn
+
+                for index in range(1, num_vals_captured-1): # loop through all options for elbow point of turn
+                        point_2 = lat_long_speed_vals[index]
+
+                        angle = getAngle(point_1, point_2, point_3) # get angle using the three points
+
+                        if (angle > max_angle):
+                            max_angle = angle
+                            best_turning_point = point_2
+
+                if max_angle > 40:
+                    found_turns.append([point_1, best_turning_point, point_3])
+
+            lat_long_speed_vals = []
+            decelerating = False
+            lastTimeValue = 0.0
+            timeDecelerating = 0.0
+
+    return found_turns
+
+
 
 def write_kml(lines_kml_body, found_stops, output_file):
     f = open(output_file, "w")
@@ -180,6 +257,24 @@ def write_kml(lines_kml_body, found_stops, output_file):
             num_points = len(stop) # number if records in the stop
             stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this
             line = ",".join(list(map(lambda x: str(x), stop_point)))
+            f.write("\t\t<coordinates>")
+            f.write(line + "</coordinates>\n")
+            f.write("\t</Point>\n")
+            f.write("</Placemark>")
+
+    if len(found_turns) > 0:
+        for turn in found_turns:
+
+            direction = getDirection(turn[0], turn[1], turn[2])
+
+            if direction == "left":
+                f.write(kml_header_yellow)
+            elif direction == "right":
+                f.write(kml_header_cyan)
+            else:
+                f.write(kml_header_magenta)
+
+            line = ",".join(list(map(lambda x: str(x), turn[1])))
             f.write("\t\t<coordinates>")
             f.write(line + "</coordinates>\n")
             f.write("\t</Point>\n")
@@ -222,6 +317,7 @@ if __name__ == '__main__':
             points.append(point)
         results = GPS_to_KML.filter(points)
         found_stops = findAllStops(results)
+        found_turns = findAllTurns(results)
         write_kml(results, found_stops, output_file)
         print(len(lon_lat_speed))
         print(len(results))
