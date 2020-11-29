@@ -126,7 +126,7 @@ def readGPRMC(fields):
         lon = None
 
     if is_number(knots):
-        speed = float(knots)
+        speed = float(knots) * 1.150779448  # 1 knot is equal to 1.150779448 MPH, multiply speed value by 1.150779448
     else:
         speed = None
     return [lon, lat, speed]
@@ -182,6 +182,7 @@ def write_kml(lines_kml_body, output_file):
             f.write(line + "\n")
     f.write(kml_tail)
     f.close()
+
 if __name__ == '__main__':
     parameter = sys.argv[1:]
     if len(parameter) != 2:
