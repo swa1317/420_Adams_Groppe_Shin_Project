@@ -1,6 +1,7 @@
+import glob
+import os
 import sys
-import glob, os
-
+import GPS_to_KML
 
 ################################
 #                              #
@@ -95,3 +96,10 @@ if __name__ == '__main__':
         output_file = parameter[1]
         file_paths = parse_folder(input_file)
         lon_lat_speed = parse_gps_files(file_paths)
+        points = []
+        for pt in lon_lat_speed:
+            point = GPS_to_KML.DataPoint(pt[0], pt[1], pt[2])
+            points.append(point)
+        results = GPS_to_KML.filter(points)
+        print(len(lon_lat_speed))
+        print(len(results))

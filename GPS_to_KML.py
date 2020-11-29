@@ -150,7 +150,7 @@ def filter(points):
                 if point.speed <= Smallest_Kn:
                     point.speed = 0.0
     idx = 0
-    while idx <= len(points)-1:
+    while idx <= len(points)-2:
         curr_point = points[idx]
         next_point = points[idx + 1]
         if abs(curr_point.speed - next_point.speed) <= Smallest_deltaKn:
@@ -162,7 +162,7 @@ def filter(points):
     return results
 
 
-def parse_gps_file(input_file, output_file):
+def parse_gps_file(input_file):
     lines = readGPS(input_file)  # gps file starting at beginning of gps data
     lines_kml_body = getKMLBody(lines)
     points = []
@@ -170,6 +170,10 @@ def parse_gps_file(input_file, output_file):
         point = DataPoint(line[0], line[1], line[2])
         points.append(point)
     lines_kml_body = filter(points)
+    return lines_kml_body
+
+
+def write_kml(lines_kml_body, output_file):
     f = open(output_file, "w")
     f.write(kml_header)
     for line_list in lines_kml_body:
@@ -178,48 +182,10 @@ def parse_gps_file(input_file, output_file):
             f.write(line + "\n")
     f.write(kml_tail)
     f.close()
-
-
-# def main(parameter):
-#     GPS_Filename = parameter[0]
-#     if GPS_Filename == '*.txt':
-#         onlyfiles = [f for f in os.listdir("FILES_TO_WORK")]
-#         for file in onlyfiles:
-#             print(file.title())
-#             KML_Filename = file.title()[:len(file.title())-4]+"_"+parameter[1]
-#             Lines = readGPS("FILES_TO_WORK\\"+file.title())  # gps file starting at beginning of gps data
-#             Lines_KML_Body = getKMLBody(Lines)
-#             f = open(KML_Filename, "w")
-#             f.write(kml_header)
-#             for line in Lines_KML_Body:
-#                 if line:
-#                     for el in line:
-#                         if el != line[-1]:
-#                             f.write(str(el)+",")
-#                         else:
-#                             f.write(str(el))
-#                     f.write("\n")
-#             f.write(KML_Tail)
-#             f.close()
-#             print('temp line for debug')
-#     else:
-#         KML_Filename = parameter[1]
-#         Lines = readGPS(GPS_Filename)  # gps file starting at beginning of gps data
-#         Lines_KML_Body = getKMLBody(Lines)
-#         f = open(KML_Filename, "w")
-#         f.write(KML_Header)
-#         f.write("\n \n")
-#         for line in Lines_KML_Body:
-#             if line:
-#                 for el in line:
-#                     f.write(str(el))
-#         f.write("\n \n")
-#         f.write(KML_Tail)
-#         f.close()
-#         print('temp line for debug')
 if __name__ == '__main__':
     parameter = sys.argv[1:]
     if len(parameter) != 2:
         print("Incorrect number of parameters. \nUsage: GPS_to_KML.py GPS_Filename.txt KML_Filename.kml")
     else:
-        parse_gps_file(parameter[0], parameter[1])
+        lines_res = parse_gps_file(parameter[0])
+        write_kml(lines_res, parameter[1])
