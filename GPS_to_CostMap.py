@@ -63,13 +63,17 @@ def readGPS(gpsFile):
 def parse_folder(input_file):
     input_file_list = input_file.split("*")
     dir = "." if input_file_list[0] == "" else input_file_list[0]
-    file_type = "*" + input_file_list[1]
-    file_paths = []
-    os.chdir(dir)
-    for file in glob.glob(file_type):
-        full_path = dir + file
-        file_paths.append(full_path)
-    os.chdir("..")
+    if len(input_file_list) > 1:
+        # all files were selected
+        file_type = "*" + input_file_list[1]
+        file_paths = []
+        os.chdir(dir)
+        for file in glob.glob(file_type):
+            full_path = dir + file
+            file_paths.append(full_path)
+        os.chdir("..")
+    else:
+        file_paths = [input_file]
     return file_paths
 
 
