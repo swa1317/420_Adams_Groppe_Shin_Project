@@ -109,11 +109,11 @@ def readGPRMC(fields):
     else:
         lon = 'Corrupt'
 
-    if is_number(fields[8]):
-        alt = float(fields[8])
+    if is_number(fields[7]):
+        speed = float(fields[7])
     else:
-        alt = 'Corrupt'
-    return [lat, lon, alt]
+        speed = 'Corrupt'
+    return [lat, lon, speed]
 def doNothing(fields):
     return
 # given array of lng line's fields, return the equivalent KML line as string
