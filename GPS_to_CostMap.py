@@ -3,6 +3,7 @@ import os
 import sys
 import GPS_to_KML
 import math
+import datetime
 
 ################################
 #                              #
@@ -27,6 +28,8 @@ def readGPRMC(fields):
     degree_mins_long = fields[5]  # DDDmm.mm
     posEast_negWest = fields[6]
     knots = fields[7]
+    timeUTC = fields[1]
+
     if is_number(degree_mins_lat):
         degree = float(degree_mins_lat[:2])
         minutes = float(degree_mins_lat[2:])
@@ -43,10 +46,16 @@ def readGPRMC(fields):
         lon = None
 
     if is_number(knots):
-        speed = float(knots)
+        speed = float(knots) * 1.150779448  # 1 knot is equal to 1.150779448 MPH, multiply speed value by 1.150779448
     else:
         speed = None
-    return [lon, lat, speed]
+
+    if is_number(timeUTC):
+        timeUTC = float(timeUTC)   # utc time as hhmmss.sss
+    else:
+        timeUTC = None
+
+    return [lon, lat, speed, timeUTC]
 
 
 def readGPS(gpsFile):
@@ -89,6 +98,45 @@ def parse_gps_files(input_files):
                 lon_lat_speed_list.append(lon_lat_speed)
     return lon_lat_speed_list
 
+def findAllStops(points):
+    decelerating = False
+
+    lat_long_values = []
+    found_stops = []
+
+    lastTimeValue = 0.0
+    timeDecelerating = 0.0
+
+    for point in points:
+
+        speed = point[2]
+        time = point[3]
+
+        if speed < 6.00: # if the speed is less than 6 MPH
+            if decelerating is False:
+                lastTimeValue = time
+                decelerating = True
+            else:
+                timeDecelerating += time - lastTimeValue
+                lastTimeValue = time
+
+            lat_long_values.append([point[0], point[1]])
+        else:
+            if decelerating is True: # if speeding up after a deceleration
+
+                # if stop lasted less than two minutes and is at least 5 records, add to found stops
+                if timeDecelerating <= 120 and len(lat_long_values) >= 5:
+                    lat_long_values.append([point[0], point[1]]) # add point where cars begins accelerating
+                    found_stops.append(lat_long_values) # add stop data to list of found stops
+
+                # reset vals
+                lat_long_values = []
+                decelerating = False
+                lastTimeValue = 0.0
+                timeDecelerating = 0.0
+
+    return found_stops
+
 
 def getAngle(a, b, c):
     angle = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
@@ -105,8 +153,9 @@ if __name__ == '__main__':
         lon_lat_speed = parse_gps_files(file_paths)
         points = []
         for pt in lon_lat_speed:
-            point = GPS_to_KML.DataPoint(pt[0], pt[1], pt[2])
+            point = GPS_to_KML.DataPoint(pt[0], pt[1], pt[2], pt[3])
             points.append(point)
         results = GPS_to_KML.filter(points)
+        found_stops = findAllStops(results)
         print(len(lon_lat_speed))
         print(len(results))

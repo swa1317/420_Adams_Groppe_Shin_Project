@@ -135,9 +135,9 @@ def readGPRMC(fields):
         speed = None
 
     if is_number(timeUTC):
-        timeUTC = datetime.datetime.fromtimestamp(float(timeUTC))   # convert timestamp to datetime value
+        timeUTC = float(timeUTC)   # utc time as hhmmss.sss
     else:
-        timeUTC = None #
+        timeUTC = None
 
     return [lon, lat, speed, timeUTC]
 
