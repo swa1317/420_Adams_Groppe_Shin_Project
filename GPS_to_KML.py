@@ -46,6 +46,7 @@ def readGPS(gpsFile):
         x = file_line.split(",")
         if x[0] == "$GPRMC":
             filtered_lines.append(file_line)
+    gpsData.close()
     return filtered_lines
 
 

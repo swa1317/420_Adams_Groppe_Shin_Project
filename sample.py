@@ -5,6 +5,8 @@
 # https://docs.novatel.com/OEM7/Content/Logs/GPVTG.htm
 
 if __name__ == '__main__':
-    a = [1, 2, 1]
-    if None not in a:
-        print(1)
+    f = 'FILES_TO_WORK/2019_03_03__1523_18.txt'
+    a = open(f, 'r')
+    file_lines = a.readlines()
+    a.close()
+    print(file_lines)
