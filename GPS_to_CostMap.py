@@ -161,10 +161,10 @@ def findAllStops(points):
         time = point[3]
 
         if speed < 6.00: # if the speed is less than 6 MPH
-            if decelerating is False:
+            if decelerating is False: # if first value in deceleration event
                 lastTimeValue = time
                 decelerating = True
-            else:
+            else: # if not first value in deceleration event then update elapsed time
                 timeDecelerating += time - lastTimeValue
                 lastTimeValue = time
 
@@ -192,7 +192,6 @@ def findAllTurns(points):
     found_turns = []
 
     lastTimeValue = 0.0
-    lastSpeedValue = 0.0
     timeDecelerating = 0.0
 
     for point in points:
@@ -200,11 +199,11 @@ def findAllTurns(points):
         speed = point[2]
         time = point[3]
 
-        if speed < 30.00:  # if the speed is less than 25 MPH, then we might be about to turn
-            if decelerating is False:
+        if speed < 30.00:  # if the speed is less than 30 MPH, then we might be about to turn
+            if decelerating is False: # if first value in deceleration event
                 lastTimeValue = time
                 decelerating = True
-            else:
+            else: # if not first value in deceleration event then update elapsed time
                 timeDecelerating += time - lastTimeValue
                 lastTimeValue = time
 
@@ -227,13 +226,14 @@ def findAllTurns(points):
 
                         angle = getAngle(point_1, point_2, point_3) # get angle using the three points
 
-                        if (angle > max_angle):
+                        if (angle > max_angle): # if found new best angle
                             max_angle = angle
                             best_turning_point = point_2
 
-                if max_angle > 40:
+                if max_angle > 40: # if the best angle is above 40 degrees then it might be a turn
                     found_turns.append([point_1, best_turning_point, point_3])
 
+            # reset vals
             lat_long_speed_vals = []
             decelerating = False
             lastTimeValue = 0.0
