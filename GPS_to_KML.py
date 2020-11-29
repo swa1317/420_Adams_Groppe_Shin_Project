@@ -11,6 +11,16 @@ import os
 #   11/20/2020                 #
 #                              #
 ################################
+
+"""
+Source: https://docs.novatel.com/OEM7/Content/Logs/GPRMC.htm
+     0    |   1   |       2      |   3   |     4     |   5   |     6     |     7      |
+  $GPRMC  |  utc  |  pos status  |  lat  |  lat dir  |  lon  |  lon dir  |  speed Kn  |
+  
+       8      |   9    |     10    |     11    |     12     |  13   |     14     |
+  track true  |  date  |  mag var  |  var dir  |  mode ind  |  *xx  |  [CR][LF]  |
+"""
+
 Version = ""
 USE_SERIAL_FEEDBACK = False
 DEVELOPMENT_MODE = False
@@ -69,34 +79,32 @@ def getKMLBody(Lines):
         kml_line = GPS_Line_Options[fields[0].split('=')[0]](fields) # efficiently call read function using GPS_Line_Options
         lines.append(kml_line)
     return lines
-# layout of GPRMC fields
-GPRMC = {'time' : 1, 'A' : 2, 'degree_mins_lat' : 3, 'posNorth_negSouth' : 4, 'degree_mins_long' : 5, 'posEast_negWest' : 6,
-         'knots' : 7, 'tracking_angle' : 8, 'ddmmyy' : 8, 'check_sum' : 11}
+
 
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
-    degree_mins_lat = fields[GPRMC.get('degree_mins_lat')]
-    posNorth_negSouth = fields[GPRMC.get('posNorth_negSouth')]
-    degree_mins_long = fields[GPRMC.get('degree_mins_long')]
-    posEast_negWest = fields[GPRMC.get('posEast_negWest')]
-    knots = fields[GPRMC.get('knots')]
+    degree_mins_lat = fields[3] # DDmm.mm
+    posNorth_negSouth = fields[4]
+    degree_mins_long = fields[5] # DDDmm.mm
+    posEast_negWest = fields[6]
+    knots = fields[7]
     if is_number(degree_mins_lat):
         degree = float(degree_mins_lat[:2])
         minutes = float(degree_mins_lat[2:])
-        direction = 1 if fields[posNorth_negSouth] == 'N' else -1
+        direction = 1 if posNorth_negSouth == 'N' else -1
         lat = direction * (degree + (minutes/60))
     else:
         lat = 'Corrupt'
-    if is_number(fields[degree_mins_long]):
-        degree = float(fields[degree_mins_long][:3])
-        minutes = float(fields[degree_mins_long][3:])
-        direction = 1 if fields[posEast_negWest] == 'E' else -1
+    if is_number(degree_mins_long):
+        degree = float(degree_mins_long[:3])
+        minutes = float(degree_mins_long[3:])
+        direction = 1 if posEast_negWest == 'E' else -1
         lon = direction * (degree + (minutes/60))
     else:
         lon = 'Corrupt'
 
-    if is_number(fields[knots]):
-        speed = float(fields[knots])
+    if is_number(knots):
+        speed = float(knots)
     else:
         speed = 'Corrupt'
     return [lat, lon, speed]
