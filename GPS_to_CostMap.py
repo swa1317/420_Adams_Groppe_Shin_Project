@@ -137,6 +137,7 @@ def parse_folder(input_file):
         file_paths = [input_file]
     return file_paths
 
+
 # given a list of the input files process the data and return all the data points from all given files
 def parse_gps_files(input_files):
     lon_lat_speed_list = []
@@ -148,6 +149,7 @@ def parse_gps_files(input_files):
             if None not in lon_lat_speed:
                 lon_lat_speed_list.append(lon_lat_speed)
     return lon_lat_speed_list
+
 
 # given a list of data points, find the stops
 def findAllStops(points):
@@ -166,10 +168,10 @@ def findAllStops(points):
         time = point[3]
 
         if speed < 6.00:  # if the speed is less than 6 MPH
-            if decelerating is False: # if first value in deceleration event
+            if decelerating is False:  # if first value in deceleration event
                 lastTimeValue = time
                 decelerating = True
-            else: # if not first value in deceleration event then update elapsed time
+            else:  # if not first value in deceleration event then update elapsed time
                 timeDecelerating += time - lastTimeValue
                 lastTimeValue = time
 
@@ -190,6 +192,7 @@ def findAllStops(points):
 
     return found_stops
 
+
 def findAllTurns(points):
     decelerating = False
 
@@ -205,37 +208,37 @@ def findAllTurns(points):
         time = point[3]
 
         if speed < 30.00:  # if the speed is less than 30 MPH, then we might be about to turn
-            if decelerating is False: # if first value in deceleration event
+            if decelerating is False:  # if first value in deceleration event
                 lastTimeValue = time
                 decelerating = True
-            else: # if not first value in deceleration event then update elapsed time
+            else:  # if not first value in deceleration event then update elapsed time
                 timeDecelerating += time - lastTimeValue
                 lastTimeValue = time
 
             lat_long_speed_vals.append([point[0], point[1], speed])
         else:
-            if decelerating is True: # if speeding up after a deceleration
+            if decelerating is True:  # if speeding up after a deceleration
                 lat_long_speed_vals.append([point[0], point[1], speed])  # add point where car begins accelerating
 
                 num_vals_captured = len(lat_long_speed_vals)
 
-                if num_vals_captured >= 3:   # if we captured at least three values
-                    point_1 = lat_long_speed_vals[0] # begining of deceleration
-                    point_3 = lat_long_speed_vals[num_vals_captured-1] # once past 15 mph
+                if num_vals_captured >= 3:  # if we captured at least three values
+                    point_1 = lat_long_speed_vals[0]  # begining of deceleration
+                    point_3 = lat_long_speed_vals[num_vals_captured - 1]  # once past 15 mph
 
-                    max_angle = 0.0 # best angle found for turn
-                    best_turning_point = point_1 # best point found for turn
+                    max_angle = 0.0  # best angle found for turn
+                    best_turning_point = point_1  # best point found for turn
 
-                for index in range(1, num_vals_captured-1): # loop through all options for elbow point of turn
-                        point_2 = lat_long_speed_vals[index]
+                for index in range(1, num_vals_captured - 1):  # loop through all options for elbow point of turn
+                    point_2 = lat_long_speed_vals[index]
 
-                        angle = getAngle(point_1, point_2, point_3) # get angle using the three points
+                    angle = getAngle(point_1, point_2, point_3)  # get angle using the three points
 
-                        if (angle > max_angle): # if found new best angle
-                            max_angle = angle
-                            best_turning_point = point_2
+                    if (angle > max_angle):  # if found new best angle
+                        max_angle = angle
+                        best_turning_point = point_2
 
-                if max_angle > 40: # if the best angle is above 40 degrees then it might be a turn
+                if max_angle > 40:  # if the best angle is above 40 degrees then it might be a turn
                     found_turns.append([point_1, best_turning_point, point_3])
 
             # reset vals now that this turning event is over
@@ -245,7 +248,6 @@ def findAllTurns(points):
             timeDecelerating = 0.0
 
     return found_turns
-
 
 
 # given the kml body, the stops found, and the output file name, create the final kml file
@@ -259,12 +261,13 @@ def write_kml(lines_kml_body, found_stops, output_file):
     f.write(kml_tail)
     if len(found_stops) > 0:
         for stop in found_stops:
-            f.write(kml_header_magenta) # write the header for the stopping pin
+            f.write(kml_header_magenta)  # write the header for the stopping pin
 
-            num_points = len(stop) # number if records in the stop
-            stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this as our stopping point
+            num_points = len(stop)  # number if records in the stop
+            stop_point = stop[
+                num_points - 3]  # get the third to last point in the stop record, we will use this as our stopping point
 
-            line = ",".join(list(map(lambda x: str(x), stop_point))) # create comma separated line of coordinate values
+            line = ",".join(list(map(lambda x: str(x), stop_point)))  # create comma separated line of coordinate values
 
             # write tail of placemark for stopping point
             f.write("\t\t<coordinates>")
@@ -286,7 +289,7 @@ def write_kml(lines_kml_body, found_stops, output_file):
             else:
                 f.write(kml_header_magenta)
 
-            line = ",".join(list(map(lambda x: str(x), turn[1]))) # create comma separated line of coordinate values
+            line = ",".join(list(map(lambda x: str(x), turn[1])))  # create comma separated line of coordinate values
 
             # write tail of placemark for turning point
             f.write("\t\t<coordinates>")
@@ -294,7 +297,7 @@ def write_kml(lines_kml_body, found_stops, output_file):
             f.write("\t</Point>\n")
             f.write("</Placemark>")
 
-    f.write(kml_last_two) # add last two lines of KML file
+    f.write(kml_last_two)  # add last two lines of KML file
     f.close()
 
 def getAngle(p_1, p_2, p_3):

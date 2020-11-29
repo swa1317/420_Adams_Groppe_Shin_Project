@@ -17,10 +17,10 @@ Latitude_outof_ROC_max = 45.0
 Latitude_outof_ROC_min = 41.0
 Longitude_outof_ROC_max = -73.0
 Longitude_outof_ROC_min = -80.0
-Smallest_deltaKn = 10.0
+Smallest_deltaKn = 1.0
 Smallest_Kn = 1.0
-Smallest_deltaLat = 0.0000000001
-Smallest_deltaLon = 0.0000000001
+Smallest_deltaLat = 0.01
+Smallest_deltaLon = 0.01
 # beginning of KML file
 kml_header = '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -138,11 +138,12 @@ def readGPRMC(fields):
         speed = None
 
     if is_number(timeUTC):
-        timeUTC = float(timeUTC)   # utc time as hhmmss.sss
+        timeUTC = float(timeUTC)  # utc time as hhmmss.sss
     else:
         timeUTC = None
 
     return [lon, lat, speed, timeUTC]
+
 
 # given array of DataPoint objects, filter out unwanted datapoints
 def filter(points):
@@ -162,7 +163,7 @@ def filter(points):
                 if point.speed <= Smallest_Kn:
                     point.speed = 0.0
     idx = 0
-    while idx <= len(points)-2:
+    while idx <= len(points) - 2:
         curr_point = points[idx]
         next_point = points[idx + 1]
         # if the change in speed is too small, remove it
@@ -183,6 +184,7 @@ def filter(points):
     print(len(results))
     return results
 
+
 # given the input file name, parse it, filter it, and return the final dataset
 def parse_gps_file(input_file):
     lines = readGPS(input_file)  # gps file starting at beginning of gps data
@@ -194,6 +196,7 @@ def parse_gps_file(input_file):
     lines_kml_body = filter(points)
     return lines_kml_body
 
+
 # given the processed data and the output file name, create the final kml file
 def write_kml(lines_kml_body, output_file):
     f = open(output_file, "w")
@@ -204,6 +207,7 @@ def write_kml(lines_kml_body, output_file):
             f.write(line + "\n")
     f.write(kml_tail)
     f.close()
+
 
 if __name__ == '__main__':
     parameter = sys.argv[1:]
