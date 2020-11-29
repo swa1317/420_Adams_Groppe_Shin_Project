@@ -292,6 +292,10 @@ def write_kml(lines_kml_body, found_stops, output_file):
     f.close()
 
 def getAngle(p_1, p_2, p_3):
+
+    if (p_1[0:2] == p_2[0:2]) or (p_2[0:2] == p_3[0:2]):
+        return 0
+
     l_1_2 = math.sqrt((p_1[0]-p_2[0])**2 + (p_1[1]-p_2[1])**2)
     l_2_3 = math.sqrt((p_2[0]-p_3[0])**2 + (p_2[1]-p_3[1])**2)
     l_3_1 = math.sqrt((p_3[0]-p_1[0])**2 + (p_3[1]-p_1[1])**2)
