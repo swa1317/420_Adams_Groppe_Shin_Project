@@ -12,6 +12,7 @@ import datetime
 #   11/20/2020                 #
 #                              #
 ################################
+# Chosen thresholds for noise reduction
 Latitude_outof_ROC_max = 45.0
 Latitude_outof_ROC_min = 41.0
 Longitude_outof_ROC_max = -73.0
@@ -143,41 +144,46 @@ def readGPRMC(fields):
 
     return [lon, lat, speed, timeUTC]
 
-
+# given array of DataPoint objects, filter out unwanted datapoints
 def filter(points):
     # if lat/lon is too far from rochester, remove
     # if speed is steady enough, remove intermediary points
-    # bin speeds that are small enough to be 0
+    original_size = len(points)
     for point in points:
-        if point.lat >= Latitude_outof_ROC_max:
-            points.remove(point)
-        elif point.lat <= Latitude_outof_ROC_min:
+        # if the latitude is too far from rochester, remove it
+        if Latitude_outof_ROC_max <= point.lat <= Latitude_outof_ROC_min:
             points.remove(point)
         else:
-            if point.lon >= Longitude_outof_ROC_max:
-                points.remove(point)
-            elif point.lon <= Longitude_outof_ROC_min:
+            # if the longitude is too far from rochester, remove it
+            if Longitude_outof_ROC_max <= point.lon <= Longitude_outof_ROC_min:
                 points.remove(point)
             else:
+                # if certain speeds are small enough, round to zero
                 if point.speed <= Smallest_Kn:
                     point.speed = 0.0
     idx = 0
     while idx <= len(points)-2:
         curr_point = points[idx]
         next_point = points[idx + 1]
+        # if the change in speed is too small, remove it
         if abs(curr_point.speed - next_point.speed) <= Smallest_deltaKn:
             points.remove(next_point)
+        # if the change in latitude is too small, remove it
         elif abs(curr_point.lat - next_point.lat) <= Smallest_deltaLat:
             points.remove(next_point)
+        # if the change in longitude is too small, remove it
         elif abs(curr_point.lon - next_point.lon) <= Smallest_deltaLon:
             points.remove(next_point)
         idx += 1
     results = []
+    # convert to nested array as expected by other functions
     for point in points:
-        results.append([point.lat, point.lon, point.speed, point.time])
+        results.append([point.lon, point.lat, point.speed, point.time])
+    print(original_size)
+    print(len(results))
     return results
 
-
+# given the input file name, parse it, filter it, and return the final dataset
 def parse_gps_file(input_file):
     lines = readGPS(input_file)  # gps file starting at beginning of gps data
     lines_kml_body = getKMLBody(lines)
@@ -188,7 +194,7 @@ def parse_gps_file(input_file):
     lines_kml_body = filter(points)
     return lines_kml_body
 
-
+# given the processed data and the output file name, create the final kml file
 def write_kml(lines_kml_body, output_file):
     f = open(output_file, "w")
     f.write(kml_header)

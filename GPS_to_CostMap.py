@@ -55,11 +55,12 @@ kml_tail = '''
   </Placemark>
 '''
 
-#last two lines of KML file
+# last two lines of KML file
 kml_last_two = '''
  </Document>
 </kml>
 '''
+
 
 def is_number(string):
     try:
@@ -69,6 +70,7 @@ def is_number(string):
         return False
 
 
+# given a line of GPRMC data, grab the latitude and longitude in degrees, the speed, and the time
 def readGPRMC(fields):
     degree_mins_lat = fields[3]  # DDmm.mm
     posNorth_negSouth = fields[4]
@@ -98,13 +100,14 @@ def readGPRMC(fields):
         speed = None
 
     if is_number(timeUTC):
-        timeUTC = float(timeUTC)   # utc time as hhmmss.sss
+        timeUTC = float(timeUTC)  # utc time as hhmmss.sss
     else:
         timeUTC = None
 
     return [lon, lat, speed, timeUTC]
 
 
+# given the input file name, process the data and return the data points
 def readGPS(gpsFile):
     gpsData = open(gpsFile, 'r')
     file_lines = gpsData.readlines()
@@ -117,6 +120,7 @@ def readGPS(gpsFile):
     return filtered_lines
 
 
+# given the input file, parse the files and process them
 def parse_folder(input_file):
     input_file_list = input_file.split("*")
     dir = "." if input_file_list[0] == "" else input_file_list[0]
@@ -133,7 +137,7 @@ def parse_folder(input_file):
         file_paths = [input_file]
     return file_paths
 
-
+# given a list of the input files process the data and return all the data points from all given files
 def parse_gps_files(input_files):
     lon_lat_speed_list = []
     for file in input_files:
@@ -145,6 +149,7 @@ def parse_gps_files(input_files):
                 lon_lat_speed_list.append(lon_lat_speed)
     return lon_lat_speed_list
 
+# given a list of data points, find the stops
 def findAllStops(points):
     decelerating = False
 
@@ -160,7 +165,7 @@ def findAllStops(points):
         speed = point[2]
         time = point[3]
 
-        if speed < 6.00: # if the speed is less than 6 MPH
+        if speed < 6.00:  # if the speed is less than 6 MPH
             if decelerating is False: # if first value in deceleration event
                 lastTimeValue = time
                 decelerating = True
@@ -170,12 +175,12 @@ def findAllStops(points):
 
             lat_long_speed_vals.append([point[0], point[1], speed])
         else:
-            if decelerating is True: # if speeding up after a deceleration
+            if decelerating is True:  # if speeding up after a deceleration
 
                 # if stop lasted less than three minutes and is at least 5 records, add to found stops
                 if timeDecelerating <= 180 and len(lat_long_speed_vals) >= 5:
-                    lat_long_speed_vals.append([point[0], point[1], speed]) # add point where car begins accelerating
-                    found_stops.append(lat_long_speed_vals) # add stop data to list of found stops
+                    lat_long_speed_vals.append([point[0], point[1], speed])  # add point where car begins accelerating
+                    found_stops.append(lat_long_speed_vals)  # add stop data to list of found stops
 
                 # reset vals now that this stopping event is over
                 lat_long_speed_vals = []
@@ -243,6 +248,7 @@ def findAllTurns(points):
 
 
 
+# given the kml body, the stops found, and the output file name, create the final kml file
 def write_kml(lines_kml_body, found_stops, output_file):
     f = open(output_file, "w")
     f.write(GPS_to_KML.kml_header)
@@ -254,8 +260,8 @@ def write_kml(lines_kml_body, found_stops, output_file):
     if len(found_stops) > 0:
         for stop in found_stops:
             f.write(kml_header_magenta)
-            num_points = len(stop) # number if records in the stop
-            stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this
+            num_points = len(stop)  # number if records in the stop
+            stop_point = stop[num_points - 3]  # get the third to last point in the stop record, we will use this
             line = ",".join(list(map(lambda x: str(x), stop_point)))
             f.write("\t\t<coordinates>")
             f.write(line + "</coordinates>\n")
@@ -283,24 +289,27 @@ def write_kml(lines_kml_body, found_stops, output_file):
     f.write(kml_last_two)
     f.close()
 
-def getAngle(p_1, p_2, p_3):
-    l_1_2 = math.sqrt((p_1[0]-p_2[0])**2 + (p_1[1]-p_2[1])**2)
-    l_2_3 = math.sqrt((p_2[0]-p_3[0])**2 + (p_2[1]-p_3[1])**2)
-    l_3_1 = math.sqrt((p_3[0]-p_1[0])**2 + (p_3[1]-p_1[1])**2)
-    return math.degrees(math.cos(((l_2_3)**2 + (l_1_2)**2 - (l_3_1)**2) / (2 * l_2_3 * l_1_2)))
+# Given three data points, get the angle between them
+def getAngle(point1, point2, point3):
+    dist_1_2 = math.sqrt((point1[0] - point2[0]) ** 2 + (point1[1] - point2[1]) ** 2)
+    dist_2_3 = math.sqrt((point2[0] - point3[0]) ** 2 + (point2[1] - point3[1]) ** 2)
+    dist_1_3 = math.sqrt((point3[0] - point1[0]) ** 2 + (point3[1] - point1[1]) ** 2)
+    return math.degrees(math.cos(((dist_2_3) ** 2 + (dist_1_2) ** 2 - (dist_1_3) ** 2) / (2 * dist_2_3 * dist_1_2)))
 
-def getDirection(p_1, p_2, p_3):
-    v1 = (p_2[0]-p_1[0], p_2[1]-p_1[1])
-    v2 = (p_2[0]-p_3[0], p_2[1]-p_3[1])
-    cross = v1[1]*v2[0] - v1[0]*v2[1]
+
+def getDirection(point1, point2, point3):
+    vector1 = (point2[0] - point1[0], point2[1] - point1[1])
+    vector2 = (point2[0] - point3[0], point2[1] - point3[1])
+    cross = vector1[1] * vector2[0] - vector1[0] * vector2[1]
     if cross > 0:
         return "left"
     if cross < 0:
         return "right"
-    dot = v1[1]*v2[1] + v1[0]*v2[0]
+    dot = vector1[1] * vector2[1] + vector1[0] * vector2[0]
     if dot > 0:
         return "straight"
     return "uturn"
+
 
 if __name__ == '__main__':
     parameter = sys.argv[1:]
@@ -312,8 +321,8 @@ if __name__ == '__main__':
         file_paths = parse_folder(input_file)
         lon_lat_speed = parse_gps_files(file_paths)
         points = []
-        for pt in lon_lat_speed:
-            point = GPS_to_KML.DataPoint(pt[0], pt[1], pt[2], pt[3])
+        for data_point in lon_lat_speed:
+            point = GPS_to_KML.DataPoint(data_point[0], data_point[1], data_point[2], data_point[3])
             points.append(point)
         results = GPS_to_KML.filter(points)
         found_stops = findAllStops(results)
