@@ -18,6 +18,8 @@ Longitude_outof_ROC_max = -73.0
 Longitude_outof_ROC_min = -80.0
 Smallest_deltaKn = 10.0
 Smallest_Kn = 1.0
+Smallest_deltaLat = 0.0000000001
+Smallest_deltaLon = 0.0000000001
 # beginning of KML file
 kml_header = '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -165,6 +167,10 @@ def filter(points):
         next_point = points[idx + 1]
         if abs(curr_point.speed - next_point.speed) <= Smallest_deltaKn:
             points.remove(next_point)
+        elif abs(curr_point.lat - next_point.lat) <= Smallest_deltaLat:
+            points.remove(next_point)
+        elif abs(curr_point.lon - next_point.lon) <= Smallest_deltaLon:
+            points.remove(next_point)
         idx += 1
     results = []
     for point in points:
@@ -177,7 +183,7 @@ def parse_gps_file(input_file):
     lines_kml_body = getKMLBody(lines)
     points = []
     for line in lines_kml_body:
-        point = DataPoint(line[0], line[1], line[2])
+        point = DataPoint(line[0], line[1], line[2], line[3])
         points.append(point)
     lines_kml_body = filter(points)
     return lines_kml_body

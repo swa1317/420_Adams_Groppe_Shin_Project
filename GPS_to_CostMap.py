@@ -203,7 +203,7 @@ if __name__ == '__main__':
         lon_lat_speed = parse_gps_files(file_paths)
         points = []
         for pt in lon_lat_speed:
-            point = GPS_to_KML.DataPoint(pt[0], pt[1], pt[2], pt[3])
+            point = GPS_to_KML.DataPoint(pt[1], pt[0], pt[2], pt[3])
             points.append(point)
         results = GPS_to_KML.filter(points)
         found_stops = findAllStops(results)
