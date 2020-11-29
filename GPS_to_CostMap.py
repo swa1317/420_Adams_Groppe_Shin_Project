@@ -1,6 +1,7 @@
 import sys
 import glob, os
 
+
 ################################
 #                              #
 #   Samuel Adams               #
@@ -17,24 +18,25 @@ def is_number(string):
     except ValueError:
         return False
 
+
 def readGPRMC(fields):
-    degree_mins_lat = fields[3] # DDmm.mm
+    degree_mins_lat = fields[3]  # DDmm.mm
     posNorth_negSouth = fields[4]
-    degree_mins_long = fields[5] # DDDmm.mm
+    degree_mins_long = fields[5]  # DDDmm.mm
     posEast_negWest = fields[6]
     knots = fields[7]
     if is_number(degree_mins_lat):
         degree = float(degree_mins_lat[:2])
         minutes = float(degree_mins_lat[2:])
         direction = 1 if posNorth_negSouth == 'N' else -1
-        lat = round(direction * (degree + (minutes/60)), 6)
+        lat = round(direction * (degree + (minutes / 60)), 6)
     else:
         lat = None
     if is_number(degree_mins_long):
         degree = float(degree_mins_long[:3])
         minutes = float(degree_mins_long[3:])
         direction = 1 if posEast_negWest == 'E' else -1
-        lon = round(direction * (degree + (minutes/60)), 6)
+        lon = round(direction * (degree + (minutes / 60)), 6)
     else:
         lon = None
 
@@ -43,6 +45,7 @@ def readGPRMC(fields):
     else:
         speed = None
     return [lon, lat, speed]
+
 
 def readGPS(gpsFile):
     gpsData = open(gpsFile, 'r')
@@ -55,19 +58,19 @@ def readGPS(gpsFile):
     gpsData.close()
     return filtered_lines
 
+
 def parse_folder(input_file):
     input_file_list = input_file.split("*")
     dir = "." if input_file_list[0] == "" else input_file_list[0]
     file_type = "*" + input_file_list[1]
-
     file_paths = []
-
     os.chdir(dir)
     for file in glob.glob(file_type):
         full_path = dir + file
         file_paths.append(full_path)
     os.chdir("..")
     return file_paths
+
 
 def parse_gps_files(input_files):
     lon_lat_speed_list = []
@@ -81,35 +84,6 @@ def parse_gps_files(input_files):
     return lon_lat_speed_list
 
 
-
-    return gprmc
-
-def readGPRMC(fields):
-    degree_mins_lat = fields[3] # DDmm.mm
-    posNorth_negSouth = fields[4]
-    degree_mins_long = fields[5] # DDDmm.mm
-    posEast_negWest = fields[6]
-    knots = fields[7]
-    if is_number(degree_mins_lat):
-        degree = float(degree_mins_lat[:2])
-        minutes = float(degree_mins_lat[2:])
-        direction = 1 if posNorth_negSouth == 'N' else -1
-        lat = round(direction * (degree + (minutes/60)), 6)
-    else:
-        lat = None
-    if is_number(degree_mins_long):
-        degree = float(degree_mins_long[:3])
-        minutes = float(degree_mins_long[3:])
-        direction = 1 if posEast_negWest == 'E' else -1
-        lon = round(direction * (degree + (minutes/60)), 6)
-    else:
-        lon = None
-
-    if is_number(knots):
-        speed = float(knots)
-    else:
-        speed = None
-    return [lon, lat, speed]
 
 
 if __name__ == '__main__':
