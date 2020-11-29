@@ -253,10 +253,14 @@ def write_kml(lines_kml_body, found_stops, output_file):
     f.write(kml_tail)
     if len(found_stops) > 0:
         for stop in found_stops:
-            f.write(kml_header_magenta)
+            f.write(kml_header_magenta) # write the header for the stopping pin
+
             num_points = len(stop) # number if records in the stop
-            stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this
-            line = ",".join(list(map(lambda x: str(x), stop_point)))
+            stop_point = stop[num_points-3] # get the third to last point in the stop record, we will use this as our stopping point
+
+            line = ",".join(list(map(lambda x: str(x), stop_point))) # create comma separated line of coordinate values
+
+            # write tail of placemark for stopping point
             f.write("\t\t<coordinates>")
             f.write(line + "</coordinates>\n")
             f.write("\t</Point>\n")
@@ -265,8 +269,10 @@ def write_kml(lines_kml_body, found_stops, output_file):
     if len(found_turns) > 0:
         for turn in found_turns:
 
+            # get the direction of the current turn
             direction = getDirection(turn[0], turn[1], turn[2])
 
+            # different pin color based on turning direction, default to magenta if direction isn't left or right
             if direction == "left":
                 f.write(kml_header_yellow)
             elif direction == "right":
@@ -274,13 +280,15 @@ def write_kml(lines_kml_body, found_stops, output_file):
             else:
                 f.write(kml_header_magenta)
 
-            line = ",".join(list(map(lambda x: str(x), turn[1])))
+            line = ",".join(list(map(lambda x: str(x), turn[1]))) # create comma separated line of coordinate values
+
+            # write tail of placemark for turning point
             f.write("\t\t<coordinates>")
             f.write(line + "</coordinates>\n")
             f.write("\t</Point>\n")
             f.write("</Placemark>")
 
-    f.write(kml_last_two)
+    f.write(kml_last_two) # add last two lines of KML file
     f.close()
 
 def getAngle(p_1, p_2, p_3):
