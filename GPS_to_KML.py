@@ -71,16 +71,22 @@ def getKMLBody(Lines):
     return lines
 # given array of GPGGA line's fields, return the equivalent KML line as string
 def readGPGGA(fields):
-    if fields[2].isnumeric():
-        lat = float(int(fields[2][:2]) + int(fields[2][2:4]) / 60 + int(fields[2][5:]) / 3600)
+    if is_number(fields[2]):
+        degree = float(fields[2][:2])
+        minutes = float(fields[2][2:])
+        direction = 1 if fields[3] == 'N' else -1
+        lat = direction * (degree + (minutes / 60))
     else:
         lat = 'Corrupt'
-    if fields[4].isnumeric():
-        lon = float(int(fields[4][:3]) + int(fields[4][3:5]) / 60 + int(fields[4][6:]) / 3600)
+    if is_number(fields[4]):
+        degree = float(fields[4][:3])
+        minutes = float(fields[4][3:])
+        direction = 1 if fields[5] == 'E' else -1
+        lon = direction * (degree + (minutes/60))
     else:
         lon = 'Corrupt'
 
-    if fields[9].isnumeric():
+    if is_number(fields[9]):
         alt = float(fields[9])
     else:
         alt = 'Corrupt'
