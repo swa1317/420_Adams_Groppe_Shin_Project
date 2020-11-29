@@ -2,6 +2,7 @@ import glob
 import os
 import sys
 import GPS_to_KML
+import math
 
 ################################
 #                              #
@@ -89,7 +90,9 @@ def parse_gps_files(input_files):
     return lon_lat_speed_list
 
 
-
+def getAngle(a, b, c):
+    angle = math.degrees(math.atan2(c[1]-b[1], c[0]-b[0]) - math.atan2(a[1]-b[1], a[0]-b[0]))
+    return angle + 360 if angle < 0 else angle
 
 if __name__ == '__main__':
     parameter = sys.argv[1:]
