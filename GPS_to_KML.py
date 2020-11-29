@@ -69,74 +69,47 @@ def getKMLBody(Lines):
         kml_line = GPS_Line_Options[fields[0].split('=')[0]](fields) # efficiently call read function using GPS_Line_Options
         lines.append(kml_line)
     return lines
-# given array of GPGGA line's fields, return the equivalent KML line as string
-def readGPGGA(fields):
-    if is_number(fields[2]):
-        degree = float(fields[2][:2])
-        minutes = float(fields[2][2:])
-        direction = 1 if fields[3] == 'N' else -1
-        lat = direction * (degree + (minutes / 60))
-    else:
-        lat = 'Corrupt'
-    if is_number(fields[4]):
-        degree = float(fields[4][:3])
-        minutes = float(fields[4][3:])
-        direction = 1 if fields[5] == 'E' else -1
-        lon = direction * (degree + (minutes/60))
-    else:
-        lon = 'Corrupt'
-
-    if is_number(fields[9]):
-        alt = float(fields[9])
-    else:
-        alt = 'Corrupt'
-    return [lat, lon, alt]
+# layout of GPRMC fields
+GPRMC = {'time' : 1, 'A' : 2, 'degree_mins_lat' : 3, 'posNorth_negSouth' : 4, 'degree_mins_long' : 5, 'posEast_negWest' : 6,
+         'knots' : 7, 'tracking_angle' : 8, 'ddmmyy' : 8, 'check_sum' : 11}
 
 # given array of GPRMC line's fields, return the equivalent KML line as string
 def readGPRMC(fields):
-    if is_number(fields[3]):
-        degree = float(fields[3][:2])
-        minutes = float(fields[3][2:])
-        direction = 1 if fields[4] == 'N' else -1
+    degree_mins_lat = fields[GPRMC.get('degree_mins_lat')]
+    posNorth_negSouth = fields[GPRMC.get('posNorth_negSouth')]
+    degree_mins_long = fields[GPRMC.get('degree_mins_long')]
+    posEast_negWest = fields[GPRMC.get('posEast_negWest')]
+    knots = fields[GPRMC.get('knots')]
+    if is_number(degree_mins_lat):
+        degree = float(degree_mins_lat[:2])
+        minutes = float(degree_mins_lat[2:])
+        direction = 1 if fields[posNorth_negSouth] == 'N' else -1
         lat = direction * (degree + (minutes/60))
     else:
         lat = 'Corrupt'
-    if is_number(fields[5]):
-        degree = float(fields[5][:3])
-        minutes = float(fields[5][3:])
-        direction = 1 if fields[6] == 'E' else -1
+    if is_number(fields[degree_mins_long]):
+        degree = float(fields[degree_mins_long][:3])
+        minutes = float(fields[degree_mins_long][3:])
+        direction = 1 if fields[posEast_negWest] == 'E' else -1
         lon = direction * (degree + (minutes/60))
     else:
         lon = 'Corrupt'
 
-    if is_number(fields[7]):
-        speed = float(fields[7])
+    if is_number(fields[knots]):
+        speed = float(fields[knots])
     else:
         speed = 'Corrupt'
     return [lat, lon, speed]
 def doNothing(fields):
     return
 # given array of lng line's fields, return the equivalent KML line as string
-def read_lng(fields):
-    if is_number(fields[0]):
-        lat = float(fields[0].split('=')[1])
-    else:
-        lat = 'Corrupt'
-    if is_number(fields[1]):
-        lon = float(fields[1].split('=')[1])
-    else:
-        lon = 'Corrupt'
-    if is_number(fields[2]):
-        alt = float(fields[2].split('=')[1])
-    else:
-        alt = 'Corrupt'
-    return [lat, lon, alt]
+
 
 # functions corresponding to line header/first value
 GPS_Line_Options = {
-    '$GPGGA' : readGPGGA,
+    '$GPGGA' : doNothing,
     '$GPRMC' : readGPRMC,
-    'lng'    : read_lng,
+    'lng'    : doNothing,
 '192710.000' : doNothing,
     '$GPGSA' : doNothing,
     '$GPVTG' : doNothing,
@@ -178,9 +151,7 @@ KML_Tail = '''
 </kml>
 '''
 
-# layout of GPRMC fields
-GPRMC = {'time' : 1, 'A' : 2, 'degree_mins_lat' : 3, 'posNorth_negSouth' : 4, 'degree_mins_long' : 5, 'posEast_negWest' : 6,
-         'knots' : 7, 'tracking_angle' : 8, 'ddmmyy' : 8, 'check_sum' : 11}
+
 
 # layout of GPGGA fields
 GPGGA = {'time' : 1, 'degree_mins_lat' : 2, 'North' : 3, 'degree_mins_long' : 4, 'West' : 5, '1_if_fix' : 6,
