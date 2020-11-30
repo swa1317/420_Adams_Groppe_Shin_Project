@@ -150,17 +150,20 @@ def filter(points):
     # if speed is steady enough, remove intermediary points
     original_size = len(points)
     for point in points:
-        # if the latitude is too far from rochester, remove it
-        if Latitude_outof_ROC_max <= point.lat <= Latitude_outof_ROC_min:
+        if point.lat == None or point.lon == None or point.speed == None:
             points.remove(point)
+        # if the latitude is too far from rochester, remove it
         else:
-            # if the longitude is too far from rochester, remove it
-            if Longitude_outof_ROC_max <= point.lon <= Longitude_outof_ROC_min:
+            if Latitude_outof_ROC_max <= point.lat <= Latitude_outof_ROC_min:
                 points.remove(point)
             else:
-                # if certain speeds are small enough, round to zero
-                if point.speed <= Smallest_Kn:
-                    point.speed = 0.0
+                # if the longitude is too far from rochester, remove it
+                if Longitude_outof_ROC_max <= point.lon <= Longitude_outof_ROC_min:
+                    points.remove(point)
+                else:
+                    # if certain speeds are small enough, round to zero
+                    if point.speed <= Smallest_Kn:
+                        point.speed = 0.0
     idx = 0
     while idx <= len(points) - 2:
         curr_point = points[idx]
