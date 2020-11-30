@@ -77,6 +77,11 @@ class DataPoint:
 
 
 def is_number(string):
+    """
+    checks if the string is a float
+    :param string:
+    :return:
+    """
     try:
         float(string)
         return True
@@ -180,8 +185,6 @@ def filter(points):
     # convert to nested array as expected by other functions
     for point in points:
         results.append([point.lon, point.lat, point.speed, point.time])
-    print(original_size)
-    print(len(results))
     return results
 
 

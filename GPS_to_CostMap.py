@@ -14,6 +14,22 @@ import datetime
 #                              #
 ################################
 
+kml_header = '''<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document>
+<Style id="cyanPoly">
+\t<LineStyle>
+\t\t<color>ffffff00</color>
+\t\t<width>6</width>
+\t</LineStyle>
+\t<PolyStyle>
+\t\t<color>7f00ff00</color>
+\t</PolyStyle>
+</Style>
+'''
+
+
+
 kml_header_magenta = '''
 <Placemark>
 \t<Description>Magenta PIN for Stop.</Description>
@@ -61,8 +77,23 @@ kml_last_two = '''
 </kml>
 '''
 
+kml_body_start = '''
+<Placemark><styleUrl>#cyanPoly</styleUrl>
+<LineString>
+<Description>Speed in MPH, not altitude.</Description>
+\t<extrude>1</extrude>
+\t<tesselate>1</tesselate>
+\t<altitudeMode>relativeToGround</altitudeMode>
+\t<coordinates>
+'''
+
 
 def is_number(string):
+    """
+    checks if the string is a float
+    :param string:
+    :return:
+    """
     try:
         float(string)
         return True
@@ -143,11 +174,13 @@ def parse_gps_files(input_files):
     lon_lat_speed_list = []
     for file in input_files:
         gps_dataset = readGPS(file)
+        single_gps_data = []
         for gprmc in gps_dataset:
             fields = gprmc.split(',')
             lon_lat_speed = readGPRMC(fields)
             if None not in lon_lat_speed:
-                lon_lat_speed_list.append(lon_lat_speed)
+                single_gps_data.append(lon_lat_speed)
+        lon_lat_speed_list.append(single_gps_data)
     return lon_lat_speed_list
 
 
@@ -192,7 +225,7 @@ def findAllStops(points):
 
     return found_stops
 
-
+# given a list of data points, find the turns
 def findAllTurns(points):
     decelerating = False
 
@@ -251,57 +284,69 @@ def findAllTurns(points):
 
 
 # given the kml body, the stops found, and the output file name, create the final kml file
-def write_kml(lines_kml_body, found_stops, output_file):
+def write_kml(lines_kml_body_list, found_stops_list, found_turns_list, output_file):
     f = open(output_file, "w")
-    f.write(GPS_to_KML.kml_header)
-    for line_list in lines_kml_body:
-        if None not in line_list:
-            line = ",".join(list(map(lambda x: str(x), line_list[0:3])))
-            f.write(line + "\n")
-    f.write(kml_tail)
-    if len(found_stops) > 0:
-        for stop in found_stops:
-            f.write(kml_header_magenta)  # write the header for the stopping pin
+    f.write(kml_header)
+    for lines_kml_body in lines_kml_body_list:
+        f.write(kml_body_start)
+        for line_list in lines_kml_body:
+            if None not in line_list:
+                line = ",".join(list(map(lambda x: str(x), line_list[0:3])))
+                f.write(line + "\n")
+        f.write(kml_tail)
+    for found_stops in found_stops_list:
+        if len(found_stops) > 0:
+            for stop in found_stops:
+                f.write(kml_header_magenta)  # write the header for the stopping pin
 
-            num_points = len(stop)  # number if records in the stop
-            stop_point = stop[
-                num_points - 3]  # get the third to last point in the stop record, we will use this as our stopping point
+                num_points = len(stop)  # number if records in the stop
+                stop_point = stop[
+                    num_points - 3]  # get the third to last point in the stop record, we will use this as our stopping point
 
-            line = ",".join(list(map(lambda x: str(x), stop_point)))  # create comma separated line of coordinate values
+                line = ",".join(list(map(lambda x: str(x), stop_point)))  # create comma separated line of coordinate values
 
-            # write tail of placemark for stopping point
-            f.write("\t\t<coordinates>")
-            f.write(line + "</coordinates>\n")
-            f.write("\t</Point>\n")
-            f.write("</Placemark>")
+                # write tail of placemark for stopping point
+                f.write("\t\t<coordinates>")
+                f.write(line + "</coordinates>\n")
+                f.write("\t</Point>\n")
+                f.write("</Placemark>")
 
-    if len(found_turns) > 0:
-        for turn in found_turns:
+    for found_turns in found_turns_list:
+        if len(found_turns) > 0:
+            for turn in found_turns:
 
-            # get the direction of the current turn
-            direction = getDirection(turn[0], turn[1], turn[2])
+                # get the direction of the current turn
+                direction = getDirection(turn[0], turn[1], turn[2])
 
-            # different pin color based on turning direction, default to magenta if direction isn't left or right
-            if direction == "left":
-                f.write(kml_header_yellow)
-            elif direction == "right":
-                f.write(kml_header_cyan)
-            else:
-                f.write(kml_header_magenta)
+                # different pin color based on turning direction, default to magenta if direction isn't left or right
+                if direction == "left":
+                    f.write(kml_header_yellow)
+                elif direction == "right":
+                    f.write(kml_header_cyan)
+                else:
+                    f.write(kml_header_magenta)
 
-            line = ",".join(list(map(lambda x: str(x), turn[1])))  # create comma separated line of coordinate values
+                line = ",".join(list(map(lambda x: str(x), turn[1])))  # create comma separated line of coordinate values
 
-            # write tail of placemark for turning point
-            f.write("\t\t<coordinates>")
-            f.write(line + "</coordinates>\n")
-            f.write("\t</Point>\n")
-            f.write("</Placemark>")
+                # write tail of placemark for turning point
+                f.write("\t\t<coordinates>")
+                f.write(line + "</coordinates>\n")
+                f.write("\t</Point>\n")
+                f.write("</Placemark>")
 
     f.write(kml_last_two)  # add last two lines of KML file
     f.close()
 
 def getAngle(p_1, p_2, p_3):
-
+    """
+    1 -> 2 -> 3
+    p_2 is where the angle is
+    gets angle in degrees
+    :param p_1:
+    :param p_2:
+    :param p_3:
+    :return:
+    """
     if (p_1[0:2] == p_2[0:2]) or (p_2[0:2] == p_3[0:2]):
         return 0
 
@@ -312,6 +357,13 @@ def getAngle(p_1, p_2, p_3):
 
 
 def getDirection(point1, point2, point3):
+    """
+    gets the turn direction
+    :param point1:
+    :param point2:
+    :param point3:
+    :return:
+    """
     vector1 = (point2[0] - point1[0], point2[1] - point1[1])
     vector2 = (point2[0] - point3[0], point2[1] - point3[1])
     cross = vector1[1] * vector2[0] - vector1[0] * vector2[1]
@@ -324,6 +376,33 @@ def getDirection(point1, point2, point3):
         return "straight"
     return "uturn"
 
+def dup_check(dup_data, data_row):
+    """
+    returns the
+    :param dup_data:
+    :param data_row:
+    :return:
+    """
+    if data_row in dup_data:
+        return False
+    else:
+        return True
+
+def remove_dup(data):
+    """
+    remvoes the duplicate rows in the data. time consuming
+    :param data:
+    :return:
+    """
+    data_dict = {}
+    for row in data:
+        a_key = "_".join(list(map(lambda x: str(x), row[:3])))
+        a_value = row
+        data_dict[a_key] = a_value
+    new_data = []
+    for data_key in data_dict.keys():
+        new_data.append(data_dict[data_key])
+    return new_data
 
 if __name__ == '__main__':
     parameter = sys.argv[1:]
@@ -334,13 +413,20 @@ if __name__ == '__main__':
         output_file = parameter[1]
         file_paths = parse_folder(input_file)
         lon_lat_speed = parse_gps_files(file_paths)
-        points = []
-        for data_point in lon_lat_speed:
-            point = GPS_to_KML.DataPoint(data_point[1], data_point[0], data_point[2], data_point[3])
-            points.append(point)
-        results = GPS_to_KML.filter(points)
-        found_stops = findAllStops(results)
-        found_turns = findAllTurns(results)
-        write_kml(results, found_stops, output_file)
-        print(len(lon_lat_speed))
-        print(len(results))
+        results_list = []
+        found_stops_list = []
+        found_turns_list = []
+        for single_data in lon_lat_speed:
+            points = []
+            for data_point in single_data:
+                point = GPS_to_KML.DataPoint(data_point[1], data_point[0], data_point[2], data_point[3])
+                points.append(point)
+            results = GPS_to_KML.filter(points)
+            results = remove_dup(results)
+            found_stops = findAllStops(results)
+            found_turns = findAllTurns(results)
+            results_list.append(results)
+            found_stops_list.append(found_stops)
+            found_turns_list.append(found_turns)
+        write_kml(results_list, found_stops_list, found_turns_list, output_file)
+        print("done")
