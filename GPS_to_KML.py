@@ -190,7 +190,7 @@ def parse_gps_file(input_file):
     lines_kml_body = getKMLBody(lines)
     points = []
     for line in lines_kml_body:
-        point = DataPoint(line[0], line[1], line[2], line[3])
+        point = DataPoint(line[1], line[0], line[2], line[3])
         points.append(point)
     lines_kml_body = filter(points)
     return lines_kml_body
@@ -202,10 +202,38 @@ def write_kml(lines_kml_body, output_file):
     f.write(kml_header)
     for line_list in lines_kml_body:
         if None not in line_list:
-            line = ",".join(list(map(lambda x: str(x), line_list)))
+            line = ",".join(list(map(lambda x: str(x), line_list[:3])))
             f.write(line + "\n")
     f.write(kml_tail)
     f.close()
+
+def dup_check(dup_data, data_row):
+    """
+    returns the
+    :param dup_data:
+    :param data_row:
+    :return:
+    """
+    if data_row in dup_data:
+        return False
+    else:
+        return True
+
+def remove_dup(data):
+    """
+    remvoes the duplicate rows in the data. time consuming
+    :param data:
+    :return:
+    """
+    data_dict = {}
+    for row in data:
+        a_key = "_".join(list(map(lambda x: str(x), row[:3])))
+        a_value = row
+        data_dict[a_key] = a_value
+    new_data = []
+    for data_key in data_dict.keys():
+        new_data.append(data_dict[data_key])
+    return new_data
 
 
 if __name__ == '__main__':
@@ -214,4 +242,5 @@ if __name__ == '__main__':
         print("Incorrect number of parameters. \nUsage: GPS_to_KML.py GPS_Filename.txt KML_Filename.kml")
     else:
         lines_res = parse_gps_file(parameter[0])
+        lines_res = remove_dup(lines_res)
         write_kml(lines_res, parameter[1])

@@ -9,6 +9,4 @@ import math
 
 
 if __name__ == '__main__':
-    a = [1,2,3,4,5]
-    print(a[1:-1])
-    print(a[:-3])
+    print(1<2<3)
