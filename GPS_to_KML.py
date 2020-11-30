@@ -17,10 +17,9 @@ Latitude_outof_ROC_max = 45.0
 Latitude_outof_ROC_min = 41.0
 Longitude_outof_ROC_max = -73.0
 Longitude_outof_ROC_min = -80.0
-Smallest_deltaKn = 1.0
+Smallest_deltaKn = 0.01
 Smallest_Kn = 1.0
-Smallest_deltaLat = 0.01
-Smallest_deltaLon = 0.01
+
 # beginning of KML file
 kml_header = '''<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2">
@@ -173,12 +172,6 @@ def filter(points):
         next_point = points[idx + 1]
         # if the change in speed is too small, remove it
         if abs(curr_point.speed - next_point.speed) <= Smallest_deltaKn:
-            points.remove(next_point)
-        # if the change in latitude is too small, remove it
-        elif abs(curr_point.lat - next_point.lat) <= Smallest_deltaLat:
-            points.remove(next_point)
-        # if the change in longitude is too small, remove it
-        elif abs(curr_point.lon - next_point.lon) <= Smallest_deltaLon:
             points.remove(next_point)
         idx += 1
     results = []
