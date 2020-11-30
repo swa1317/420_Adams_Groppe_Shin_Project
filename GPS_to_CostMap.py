@@ -3,7 +3,6 @@ import os
 import sys
 import GPS_to_KML
 import math
-import datetime
 
 ################################
 #                              #
@@ -376,21 +375,9 @@ def getDirection(point1, point2, point3):
         return "straight"
     return "uturn"
 
-def dup_check(dup_data, data_row):
-    """
-    returns the
-    :param dup_data:
-    :param data_row:
-    :return:
-    """
-    if data_row in dup_data:
-        return False
-    else:
-        return True
-
 def remove_dup(data):
     """
-    remvoes the duplicate rows in the data. time consuming
+    removes the duplicate rows in the data. time consuming
     :param data:
     :return:
     """

@@ -1,8 +1,5 @@
-import numpy as np
-import pandas as pd
 import sys
-import os
-import datetime
+
 
 ################################
 #                              #
@@ -207,21 +204,10 @@ def write_kml(lines_kml_body, output_file):
     f.write(kml_tail)
     f.close()
 
-def dup_check(dup_data, data_row):
-    """
-    returns the
-    :param dup_data:
-    :param data_row:
-    :return:
-    """
-    if data_row in dup_data:
-        return False
-    else:
-        return True
 
 def remove_dup(data):
     """
-    remvoes the duplicate rows in the data. time consuming
+    removes the duplicate rows in the data. time consuming
     :param data:
     :return:
     """
