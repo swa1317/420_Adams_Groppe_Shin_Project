@@ -17,7 +17,7 @@ Latitude_outof_ROC_max = 45.0
 Latitude_outof_ROC_min = 41.0
 Longitude_outof_ROC_max = -73.0
 Longitude_outof_ROC_min = -80.0
-Smallest_deltaKn = 0.01
+Smallest_deltaKn = 0.00001
 Smallest_Kn = 1.0
 
 # beginning of KML file
